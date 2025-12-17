@@ -55,6 +55,8 @@
     build: {
       target: 'esnext',
       outDir: 'build',
+      // Increase chunk size warning limit (in kB) to silence large bundle warnings
+      chunkSizeWarningLimit: 4000,
     },
     server: {
       port: 3000,
