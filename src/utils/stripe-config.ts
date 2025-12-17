@@ -216,7 +216,7 @@ export const PLANS: PlanDetails[] = [
   },
   {
     name: 'Attorney Suite Annual',
-    price: 2,990,
+    price: 2990,
     priceId: STRIPE_PRICE_IDS.attorney_annual,
     interval: 'year',
     tier: 'attorney',
@@ -249,7 +249,7 @@ export const PLANS: PlanDetails[] = [
   },
   {
     name: 'Enterprise Annual',
-    price: 9,990,
+    price: 9990,
     priceId: STRIPE_PRICE_IDS.enterprise_annual,
     interval: 'year',
     tier: 'enterprise',
