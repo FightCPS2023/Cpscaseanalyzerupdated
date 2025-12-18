@@ -135,7 +135,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             The Legal Educator They Didn't Want You To Find!
           </p>
           
-          <p className="text-base sm:text-lg md:text-xl mb-6 md:mb-8 max-w-3xl mx-auto text-gray-300 px-4 leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl mb-6 md:mb-8 max-w-3xl mx-auto text-gray-100 px-4 leading-relaxed">
             Analyze your CPS case, identify violations, and develop powerful defense strategies 
             to fight for your children and work toward reunification.
           </p>
@@ -148,7 +148,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-green-600 border-2 border-black flex items-center justify-center text-xs">J</div>
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 border-2 border-black flex items-center justify-center text-xs">S</div>
             </div>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-200">
               <span className="text-white font-semibold">1,000+</span> parents fighting back with confidence
             </p>
           </div>

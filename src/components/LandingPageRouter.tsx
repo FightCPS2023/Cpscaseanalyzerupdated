@@ -50,7 +50,7 @@ export function LandingPageRouter({ onGetStarted }: LandingPageRouterProps) {
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-4 sm:mb-6 bg-gradient-to-r from-white via-gray-300 to-white bg-clip-text text-transparent px-2">
                 Welcome to The CPS Punisher
               </h1>
-              <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto px-4">
+              <p className="text-base sm:text-lg md:text-xl text-gray-200 max-w-2xl mx-auto px-4">
                 Choose your path to access the most powerful CPS defense tools available
               </p>
             </div>
@@ -71,10 +71,10 @@ export function LandingPageRouter({ onGetStarted }: LandingPageRouterProps) {
                   {/* Text Content */}
                   <div className="flex-1 space-y-4">
                     <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">I'm a Parent</h2>
-                    <p className="text-sm sm:text-base md:text-lg text-gray-300 leading-relaxed">
+                    <p className="text-sm sm:text-base md:text-lg text-gray-200 leading-relaxed">
                       Fighting a CPS case and need tools to analyze documents, identify violations, and build your defense strategy.
                     </p>
-                    <div className="flex items-center text-red-400 font-semibold text-sm sm:text-base pt-2">
+                    <div className="flex items-center text-red-300 font-semibold text-sm sm:text-base pt-2">
                       Continue as Parent
                       <svg className="w-4 h-4 sm:w-5 sm:h-5 ml-2 group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -98,10 +98,10 @@ export function LandingPageRouter({ onGetStarted }: LandingPageRouterProps) {
                   {/* Text Content */}
                   <div className="flex-1 space-y-4">
                     <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">I'm an Attorney</h2>
-                    <p className="text-sm sm:text-base md:text-lg text-gray-300 leading-relaxed">
+                    <p className="text-sm sm:text-base md:text-lg text-gray-200 leading-relaxed">
                       Family law professional looking for Westlaw-grade research tools, document automation, and case management.
                     </p>
-                    <div className="flex items-center text-blue-400 font-semibold text-sm sm:text-base pt-2">
+                    <div className="flex items-center text-blue-300 font-semibold text-sm sm:text-base pt-2">
                       Continue as Attorney
                       <svg className="w-4 h-4 sm:w-5 sm:h-5 ml-2 group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -112,25 +112,25 @@ export function LandingPageRouter({ onGetStarted }: LandingPageRouterProps) {
               </button>
             </div>
 
-            <p className="text-xs sm:text-sm text-gray-600 text-center px-4 mb-8">
+            <p className="text-xs sm:text-sm text-gray-300 text-center px-4 mb-8">
               You can always switch between views later
             </p>
 
             {/* Important Legal Disclaimer - Now positioned under role cards */}
             <div className="px-2 sm:px-4">
-              <Alert className="bg-amber-500/20 border-2 border-amber-500 shadow-lg">
-                <AlertTriangle className="h-5 w-5 text-amber-300" />
-                <AlertTitle className="text-amber-100 font-bold mb-2">
+              <Alert className="bg-amber-600/90 dark:bg-amber-700/90 border-2 border-amber-600 dark:border-amber-500 shadow-lg">
+                <AlertTriangle className="h-5 w-5 text-amber-50" />
+                <AlertTitle className="text-amber-50 font-bold mb-2">
                   ⚖️ IMPORTANT LEGAL NOTICE - READ CAREFULLY
                 </AlertTitle>
                 <AlertDescription className="text-amber-50 text-sm leading-relaxed space-y-2">
                   <p>
-                    <strong className="text-amber-100">THIS APPLICATION PROVIDES LEGAL INFORMATION ONLY, NOT LEGAL ADVICE.</strong> The creators of this application are <strong className="text-amber-100">NOT licensed attorneys</strong> and do not provide legal services. Use of this application does <strong className="text-amber-100">NOT</strong> create an attorney-client relationship.
+                    <strong className="text-amber-50">THIS APPLICATION PROVIDES LEGAL INFORMATION ONLY, NOT LEGAL ADVICE.</strong> The creators of this application are <strong className="text-amber-50">NOT licensed attorneys</strong> and do not provide legal services. Use of this application does <strong className="text-amber-50">NOT</strong> create an attorney-client relationship.
                   </p>
                   <p>
-                    <strong className="text-amber-100">All content is for educational and informational purposes only.</strong> They are NOT a substitute for professional legal advice tailored to your specific circumstances.
+                    <strong className="text-amber-50">All content is for educational and informational purposes only.</strong> They are NOT a substitute for professional legal advice tailored to your specific circumstances.
                   </p>
-                  <p className="font-semibold text-amber-100">
+                  <p className="font-semibold text-amber-50">
                     ⚠️ CRITICAL: Child protective services cases can result in permanent loss of parental rights. You MUST consult with a qualified, licensed family law attorney in your jurisdiction before taking ANY legal action.
                   </p>
                 </AlertDescription>

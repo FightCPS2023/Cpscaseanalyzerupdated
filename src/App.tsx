@@ -810,13 +810,13 @@ export default function App() {
                       <>
                         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                         <Cloud className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600 dark:text-green-400" />
-                        <span className="hidden md:inline font-medium text-gray-700 dark:text-gray-300">Cloud</span>
+                        <span className="hidden md:inline font-medium text-gray-900 dark:text-gray-100">Cloud</span>
                       </>
                     ) : (
                       <>
                         <div className="w-2 h-2 bg-blue-500 rounded-full" />
                         <HardDrive className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400" />
-                        <span className="hidden md:inline font-medium text-gray-700 dark:text-gray-300">Local</span>
+                        <span className="hidden md:inline font-medium text-gray-900 dark:text-gray-100">Local</span>
                       </>
                     )}
                   </div>
@@ -840,7 +840,7 @@ export default function App() {
             </div>
           </header>
 
-          <main id="main-content" className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 max-w-7xl" role="main">
+          <main id="main-content" className="container mx-auto px-2 sm:px-4 pt-4 sm:pt-6 pb-4 sm:pb-6 max-w-7xl" role="main" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top))' }}>
             <Alert className="mb-4 sm:mb-6 border-l-4 border-l-red-600 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30 shadow-sm w-full" role="alert" aria-live="polite">
               <div className="flex items-start sm:items-center gap-2 sm:gap-3">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-600 rounded-lg flex items-center justify-center flex-shrink-0" aria-hidden="true">
@@ -848,7 +848,7 @@ export default function App() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <AlertTitle className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white mb-1 text-justify">⚖️ Educational Tool - Not Legal Advice</AlertTitle>
-                  <AlertDescription className="text-xs text-gray-700 dark:text-gray-300 text-justify">
+                  <AlertDescription className="text-xs text-gray-800 dark:text-gray-100 text-justify">
                     <strong>Important:</strong> This tool helps you identify potential issues in your CPS case for educational purposes only. 
                     <strong> This does not constitute legal advice.</strong> Always consult with a qualified family law attorney licensed in your state
                     for legal advice specific to your situation. Laws vary by jurisdiction and individual circumstances. 
@@ -865,8 +865,8 @@ export default function App() {
                   <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
                 <div className="flex-1 min-w-0 w-full">
-                  <h2 className="mb-2 text-base sm:text-lg font-bold text-purple-900 dark:text-purple-100">Set Your State for Customized Legal Information</h2>
-                  <p className="text-xs sm:text-sm text-purple-800 dark:text-purple-200 mb-3 sm:mb-4 leading-relaxed">
+                  <h2 className="mb-2 text-base sm:text-lg font-bold text-purple-900 dark:text-purple-50">Set Your State for Customized Legal Information</h2>
+                  <p className="text-xs sm:text-sm text-purple-900 dark:text-purple-100 mb-3 sm:mb-4 leading-relaxed">
                     <strong>Important:</strong> CPS laws and procedures vary significantly by state. Select your state to receive jurisdiction-specific guidance, case law, and defense strategies. 
                     This ensures the information you receive is relevant to your legal jurisdiction.
                     {detectedLocation && !userState && ` We detected you may be in ${detectedLocation}.`}
@@ -931,7 +931,7 @@ export default function App() {
                       </SelectContent>
                     </Select>
                     {userState && (
-                      <div className="flex items-center gap-2 px-3 py-2 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-lg text-sm">
+                      <div className="flex items-center gap-2 px-3 py-2 bg-green-100 dark:bg-green-800 text-green-900 dark:text-green-50 rounded-lg text-sm">
                         <MapPin className="w-4 h-4" />
                         <span>{userState} selected</span>
                       </div>
