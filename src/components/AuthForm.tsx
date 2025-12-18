@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -9,12 +9,20 @@ import { Separator } from "./ui/separator";
 import { api } from "../utils/api";
 import { toast } from "sonner@2.0.3";
 import { CPSPunisherLogo } from "./CPSPunisherLogo";
+import { createClient } from "@supabase/supabase-js";
+import { projectId, publicAnonKey } from "../utils/supabase/info";
 
 interface AuthFormProps {
   onAuth: (userId: string, accessToken: string) => void;
 }
 
 type AuthProvider = 'email' | 'google' | 'microsoft' | 'apple' | 'yahoo';
+
+// Initialize Supabase client
+const supabase = createClient(
+  `https://${projectId}.supabase.co`,
+  publicAnonKey
+);
 
 export function AuthForm({ onAuth }: AuthFormProps) {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -25,24 +33,72 @@ export function AuthForm({ onAuth }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProvider, setLoadingProvider] = useState<AuthProvider | null>(null);
 
+  // Check for OAuth callback on mount
+  useEffect(() => {
+    const checkOAuthCallback = async () => {
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (session && !sessionError) {
+          // User successfully authenticated via OAuth
+          onAuth(session.user.id, session.access_token);
+          toast.success('Successfully signed in!');
+        }
+      } catch (err) {
+        console.error('OAuth callback check error:', err);
+      }
+    };
+
+    checkOAuthCallback();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        onAuth(session.user.id, session.access_token);
+        toast.success('Successfully signed in!');
+      } else if (event === 'SIGNED_OUT') {
+        // Handle sign out if needed
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [onAuth]);
+
   const handleSocialAuth = async (provider: Exclude<AuthProvider, 'email'>) => {
     setError('');
     setIsLoading(true);
     setLoadingProvider(provider);
 
     try {
-      // In a real app, this would redirect to OAuth provider
-      // For demo purposes, we'll simulate successful authentication
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Map provider names to Supabase provider IDs
+      const providerMap: Record<string, string> = {
+        'google': 'google',
+        'microsoft': 'azure',
+        'apple': 'apple',
+        'yahoo': 'yahoo',
+      };
 
-      // Simulate successful OAuth
-      const mockUserId = `${provider}_${Math.random().toString(36).substring(7)}`;
-      const mockToken = `token_${Math.random().toString(36).substring(7)}`;
-      
-      onAuth(mockUserId, mockToken);
+      const supabaseProvider = providerMap[provider] || provider;
+
+      // Redirect to OAuth provider
+      const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: supabaseProvider as any,
+        options: {
+          redirectTo: `${window.location.origin}${window.location.pathname}`,
+        },
+      });
+
+      if (oauthError) {
+        throw oauthError;
+      }
+
+      // The redirect will happen automatically
+      // The useEffect hook will handle the callback
     } catch (err: any) {
-      setError(`Failed to sign in with ${provider}. Please try again.`);
-    } finally {
+      console.error('OAuth error:', err);
+      setError(`Failed to sign in with ${provider}. ${err.message || 'Please try again.'}`);
       setIsLoading(false);
       setLoadingProvider(null);
     }
