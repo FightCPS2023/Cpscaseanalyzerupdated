@@ -1,5 +1,6 @@
 // CPS Case Defense Analyzer - Main App Component
 import React, { useState, useEffect } from "react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import { initGA, trackPageView, trackCPSEvent } from "./utils/analytics";
 import { initSentry } from "./utils/sentry";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -1734,6 +1735,9 @@ export default function App() {
           
           {/* Help Bot */}
           <HelpBot />
+          
+          {/* Vercel Speed Insights */}
+          <SpeedInsights />
           
           {/* Case Manager Dialog */}
           <CaseManager
