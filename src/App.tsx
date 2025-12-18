@@ -1,5 +1,6 @@
 // CPS Case Defense Analyzer - Main App Component
 import React, { useState, useEffect } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import { initGA, trackPageView, trackCPSEvent } from "./utils/analytics";
 import { initSentry } from "./utils/sentry";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -1731,6 +1732,7 @@ export default function App() {
 
           <FooterDisclaimer />
           <Toaster />
+          <Analytics />
           
           {/* Help Bot */}
           <HelpBot />
