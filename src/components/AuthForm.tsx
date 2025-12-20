@@ -33,31 +33,62 @@ export function AuthForm({ onAuth }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProvider, setLoadingProvider] = useState<AuthProvider | null>(null);
 
-  // Check for OAuth callback on mount
+  // Check for OAuth callback on mount and handle URL hash
   useEffect(() => {
-    const checkOAuthCallback = async () => {
+    const handleOAuthCallback = async () => {
       try {
+        // Check if we're returning from an OAuth redirect (hash contains access_token)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const error = hashParams.get('error');
+        const errorDescription = hashParams.get('error_description');
+
+        if (error) {
+          setError(`OAuth error: ${errorDescription || error}`);
+          // Clean up URL
+          window.history.replaceState({}, document.title, window.location.pathname);
+          return;
+        }
+
+        // Get session (this will work if we have tokens in the hash)
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (session && !sessionError) {
           // User successfully authenticated via OAuth
           onAuth(session.user.id, session.access_token);
           toast.success('Successfully signed in!');
+          // Clean up URL hash
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (accessToken) {
+          // We have a token in the hash, try to get the session
+          const { data: { session: newSession }, error: newError } = await supabase.auth.getSession();
+          if (newSession && !newError) {
+            onAuth(newSession.user.id, newSession.access_token);
+            toast.success('Successfully signed in!');
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('OAuth callback check error:', err);
+        setError(`Failed to complete sign in: ${err.message || 'Unknown error'}`);
       }
     };
 
-    checkOAuthCallback();
+    handleOAuthCallback();
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state change:', event, session?.user?.email);
+      
       if (event === 'SIGNED_IN' && session) {
         onAuth(session.user.id, session.access_token);
         toast.success('Successfully signed in!');
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
       } else if (event === 'SIGNED_OUT') {
         // Handle sign out if needed
+      } else if (event === 'TOKEN_REFRESHED' && session) {
+        // Token was refreshed, update if needed
       }
     });
 
@@ -82,23 +113,51 @@ export function AuthForm({ onAuth }: AuthFormProps) {
 
       const supabaseProvider = providerMap[provider] || provider;
 
+      // Build redirect URL - use current origin and pathname
+      const redirectTo = `${window.location.origin}${window.location.pathname}`;
+      
+      console.log('Initiating OAuth with provider:', supabaseProvider);
+      console.log('Redirect URL:', redirectTo);
+
       // Redirect to OAuth provider
       const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: supabaseProvider as any,
         options: {
-          redirectTo: `${window.location.origin}${window.location.pathname}`,
+          redirectTo: redirectTo,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
 
       if (oauthError) {
+        console.error('OAuth initiation error:', oauthError);
         throw oauthError;
       }
 
-      // The redirect will happen automatically
-      // The useEffect hook will handle the callback
+      // If we get a URL, the redirect should happen automatically
+      // But if the provider isn't configured, we might get an error
+      if (data?.url) {
+        console.log('Redirecting to OAuth provider...');
+        // The redirect happens automatically via Supabase
+        // Don't set loading to false - we're redirecting
+      } else {
+        throw new Error('OAuth provider not properly configured. Please check your Supabase settings.');
+      }
     } catch (err: any) {
       console.error('OAuth error:', err);
-      setError(`Failed to sign in with ${provider}. ${err.message || 'Please try again.'}`);
+      
+      // Provide more helpful error messages
+      let errorMessage = err.message || 'Please try again.';
+      
+      if (err.message?.includes('not configured') || err.message?.includes('disabled')) {
+        errorMessage = `${provider.charAt(0).toUpperCase() + provider.slice(1)} sign-in is not configured. Please contact support or use email/password sign-in.`;
+      } else if (err.message?.includes('redirect_uri_mismatch')) {
+        errorMessage = 'OAuth configuration error. Please contact support.';
+      }
+      
+      setError(`Failed to sign in with ${provider}. ${errorMessage}`);
       setIsLoading(false);
       setLoadingProvider(null);
     }
