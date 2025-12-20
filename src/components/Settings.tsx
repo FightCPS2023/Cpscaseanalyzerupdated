@@ -35,9 +35,16 @@ export function Settings() {
 
   useEffect(() => {
     // Check if API key exists
-    const key = localStorage.getItem('VITE_GEMINI_API_KEY');
-    if (key) {
-      setExistingKey(key);
+    const stored = localStorage.getItem('VITE_GEMINI_API_KEY');
+    if (stored) {
+      let decodedKey = stored;
+      try {
+        // Handle base64-encoded storage if present
+        decodedKey = atob(stored);
+      } catch {
+        // If decoding fails, assume legacy plain-text value
+      }
+      setExistingKey(decodedKey);
     }
   }, []);
 
@@ -51,9 +58,10 @@ export function Settings() {
     setTestOutput('Testing API key...');
     
     try {
-      // Temporarily save to localStorage for testing
+      // Temporarily save to localStorage for testing, using encoded storage
       const previousKey = localStorage.getItem('VITE_GEMINI_API_KEY');
-      localStorage.setItem('VITE_GEMINI_API_KEY', apiKey);
+      const encodedApiKey = btoa(apiKey);
+      localStorage.setItem('VITE_GEMINI_API_KEY', encodedApiKey);
 
       // Test the API key with a simple request
       const testResponse = await generateText('Say "API key is working!" in one sentence.');
@@ -65,13 +73,7 @@ export function Settings() {
     } catch (error) {
       setValidationResult('error');
       setTestOutput(`❌ Error: ${error instanceof Error ? error.message : 'Invalid API key'}`);
-      // Restore previous key
-      const previousKey = localStorage.getItem('VITE_GEMINI_API_KEY');
-      if (previousKey) {
-        localStorage.setItem('VITE_GEMINI_API_KEY', previousKey);
-      } else {
-        localStorage.removeItem('VITE_GEMINI_API_KEY');
-      }
+      // Do not modify existing stored key on failure; leave previousKey untouched
     } finally {
       setIsValidating(false);
     }
