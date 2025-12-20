@@ -182,14 +182,43 @@ export function AuthForm({ onAuth }: AuthFormProps) {
           return;
         }
 
-        // Sign up
-        await api.signup(email, password, name.trim());
-        toast.success('Account created successfully! Logging you in...');
-        
-        // Auto-login after signup
-        setTimeout(() => {
-          handleLogin();
-        }, 500);
+        // Use Supabase client-side signup (more reliable)
+        const { data: signupData, error: signupError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              name: name.trim(),
+            },
+            emailRedirectTo: `${window.location.origin}${window.location.pathname}`,
+          },
+        });
+
+        if (signupError) {
+          throw signupError;
+        }
+
+        if (signupData.user) {
+          toast.success('Account created successfully! Logging you in...');
+          
+          // If email confirmation is required, show a message
+          if (!signupData.session) {
+            toast.info('Please check your email to confirm your account before signing in.');
+            setIsLoading(false);
+            return;
+          }
+          
+          // Auto-login after signup if session is available
+          if (signupData.session) {
+            onAuth(signupData.user.id, signupData.session.access_token);
+            toast.success('Welcome! You are now signed in.');
+          } else {
+            // Try to sign in after a brief delay
+            setTimeout(() => {
+              handleLogin();
+            }, 500);
+          }
+        }
       } else {
         // Login
         await handleLogin();
@@ -200,7 +229,9 @@ export function AuthForm({ onAuth }: AuthFormProps) {
       // Provide more helpful error messages
       let errorMessage = err.message || 'An error occurred';
       
-      if (errorMessage.includes('Invalid login credentials')) {
+      if (errorMessage.includes('User already registered') || errorMessage.includes('already registered')) {
+        errorMessage = 'An account with this email already exists. Please sign in instead.';
+      } else if (errorMessage.includes('Invalid login credentials')) {
         errorMessage = isSignUp 
           ? 'Failed to create account. Please try again.'
           : 'Invalid email or password. Please check your credentials or sign up if you don\'t have an account.';
@@ -208,6 +239,8 @@ export function AuthForm({ onAuth }: AuthFormProps) {
         errorMessage = 'Server is not properly configured. Please contact support or try again later.';
       } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('Network error')) {
         errorMessage = 'Cannot connect to server. Please check your internet connection and try again.';
+      } else if (errorMessage.includes('Email rate limit')) {
+        errorMessage = 'Too many signup attempts. Please wait a few minutes and try again.';
       }
       
       setError(errorMessage);
