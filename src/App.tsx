@@ -46,7 +46,7 @@ import { LegalDisclaimerPages as LegalDisclaimer, FooterDisclaimer, AIContentDis
 import { AuthForm } from "./components/AuthForm";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import { AccessibilityProvider, SkipToContent } from "./components/AccessibilityProvider";
-// import { StickyDisclaimerBanner } from "./components/StickyDisclaimerBanner"; // REMOVED
+// import { StickyDisclaimerBanner } from "./components/StickyDisclaimerBanner";
 import { DashboardOverview } from "./components/DashboardOverview";
 import { NavigationSidebar } from "./components/NavigationSidebar";
 import { WelcomeTour } from "./components/WelcomeTour";

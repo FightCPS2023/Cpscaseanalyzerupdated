@@ -7,7 +7,7 @@ import { Alert, AlertTitle, AlertDescription } from './ui/alert';
 import { FooterDisclaimer } from './LegalDisclaimer';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import heroImage from 'figma:asset/da7dee53b50fcb425e1a14bf57136ede67a0ca5a.png';
-// import { StickyDisclaimerBanner } from './StickyDisclaimerBanner'; // REMOVED
+// import { StickyDisclaimerBanner } from './StickyDisclaimerBanner';
 
 interface LandingPageRouterProps {
   onGetStarted: () => void;
@@ -20,7 +20,6 @@ export function LandingPageRouter({ onGetStarted }: LandingPageRouterProps) {
   if (selectedAudience === null) {
     return (
       <>
-        {/* <StickyDisclaimerBanner /> */} // REMOVED
         <div className="relative min-h-screen text-white p-4 sm:p-6 md:p-8 overflow-hidden">
           {/* Background Hero Image */}
           <div className="absolute inset-0 z-0">
