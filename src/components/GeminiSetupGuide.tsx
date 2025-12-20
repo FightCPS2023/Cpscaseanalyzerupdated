@@ -41,8 +41,9 @@ export function GeminiSetupGuide() {
       );
 
       if (response.ok) {
-        // Save to localStorage
-        localStorage.setItem('VITE_GEMINI_API_KEY', apiKey);
+        // Save to localStorage in encoded form
+        const encodedApiKey = btoa(apiKey);
+        localStorage.setItem('VITE_GEMINI_API_KEY', encodedApiKey);
         setValidationResult('success');
       } else {
         setValidationResult('error');
