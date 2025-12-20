@@ -246,11 +246,11 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl mb-4">
-              <span className="bg-gradient-to-r from-white via-gray-300 to-white bg-clip-text text-transparent">
+              <span className="text-white font-bold drop-shadow-lg">
                 Parents Are Winning
               </span>
             </h2>
-            <p className="text-xl text-gray-400">Real stories from real families</p>
+            <p className="text-xl text-gray-300">Real stories from real families</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
