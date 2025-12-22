@@ -26,6 +26,72 @@ import { HelpTooltip, InfoBox } from './ui/help-tooltip';
 import { AdminPanel } from './AdminPanel';
 import { CacheClearer } from './CacheClearer';
 
+const API_KEY_STORAGE_KEY = 'VITE_GEMINI_API_KEY';
+const ENCRYPTED_PREFIX = 'enc:';
+const LOCAL_ENCRYPTION_PASSPHRASE = 'local-api-key-encryption-passphrase';
+
+async function getEncryptionKey(): Promise<CryptoKey> {
+  const enc = new TextEncoder();
+  const baseKey = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(LOCAL_ENCRYPTION_PASSPHRASE),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveKey']
+  );
+  const salt = enc.encode('settings-api-key-salt');
+  return crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt,
+      iterations: 100000,
+      hash: 'SHA-256',
+    },
+    baseKey,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+async function encryptApiKey(plain: string): Promise<string> {
+  const key = await getEncryptionKey();
+  const enc = new TextEncoder();
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    key,
+    enc.encode(plain)
+  );
+  const combined = new Uint8Array(iv.byteLength + ciphertext.byteLength);
+  combined.set(iv, 0);
+  combined.set(new Uint8Array(ciphertext), iv.byteLength);
+  const b64 = btoa(String.fromCharCode(...combined));
+  return ENCRYPTED_PREFIX + b64;
+}
+
+async function decryptApiKey(stored: string): Promise<string> {
+  if (!stored.startsWith(ENCRYPTED_PREFIX)) {
+    throw new Error('API key value is not encrypted');
+  }
+  const b64 = stored.slice(ENCRYPTED_PREFIX.length);
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  const iv = bytes.slice(0, 12);
+  const data = bytes.slice(12);
+  const key = await getEncryptionKey();
+  const decrypted = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv },
+    key,
+    data
+  );
+  const dec = new TextDecoder();
+  return dec.decode(decrypted);
+}
+
 export function Settings() {
   const [apiKey, setApiKey] = useState('');
   const [isValidating, setIsValidating] = useState(false);
@@ -34,17 +100,18 @@ export function Settings() {
   const [testOutput, setTestOutput] = useState<string>('');
 
   useEffect(() => {
-    // Check if API key exists
-    const stored = localStorage.getItem('VITE_GEMINI_API_KEY');
-    if (stored) {
-      let decodedKey = stored;
-      try {
-        // Handle base64-encoded storage if present
-        decodedKey = atob(stored);
-      } catch {
-        // If decoding fails, assume legacy plain-text value
-      }
-      setExistingKey(decodedKey);
+    // Check if API key exists (encrypted)
+    const stored = localStorage.getItem(API_KEY_STORAGE_KEY);
+    if (!stored) {
+      return;
+    }
+    if (stored.startsWith(ENCRYPTED_PREFIX)) {
+      // Encrypted key is present; avoid exposing it in cleartext state.
+      setExistingKey('•••••••• (stored)');
+    } else {
+      // Legacy plaintext key detected; treat as absent for safety.
+      localStorage.removeItem(API_KEY_STORAGE_KEY);
+      setExistingKey(null);
     }
   }, []);
 
@@ -58,22 +125,29 @@ export function Settings() {
     setTestOutput('Testing API key...');
     
     try {
-      // Temporarily save to localStorage for testing, using encoded storage
-      const previousKey = localStorage.getItem('VITE_GEMINI_API_KEY');
-      const encodedApiKey = btoa(apiKey);
-      localStorage.setItem('VITE_GEMINI_API_KEY', encodedApiKey);
+      // Temporarily save encrypted value to localStorage for testing
+      const previousKey = localStorage.getItem(API_KEY_STORAGE_KEY);
+      const encrypted = await encryptApiKey(apiKey);
+      localStorage.setItem(API_KEY_STORAGE_KEY, encrypted);
 
       // Test the API key with a simple request
       const testResponse = await generateText('Say "API key is working!" in one sentence.');
       
       setValidationResult('success');
-      setExistingKey(apiKey);
+      // Indicate that a key is stored without exposing it in cleartext.
+      setExistingKey('•••••••• (stored)');
       setTestOutput(`✅ Success! Test response: "${testResponse}"`);
       setApiKey(''); // Clear input field
     } catch (error) {
       setValidationResult('error');
       setTestOutput(`❌ Error: ${error instanceof Error ? error.message : 'Invalid API key'}`);
-      // Do not modify existing stored key on failure; leave previousKey untouched
+      // Restore previous key (already encrypted or null)
+      const previousKey = localStorage.getItem(API_KEY_STORAGE_KEY);
+      if (previousKey) {
+        localStorage.setItem(API_KEY_STORAGE_KEY, previousKey);
+      } else {
+        localStorage.removeItem(API_KEY_STORAGE_KEY);
+      }
     } finally {
       setIsValidating(false);
     }
