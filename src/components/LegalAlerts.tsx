@@ -14,6 +14,15 @@ import { toast } from 'sonner@2.0.3';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
+function generateSecretKey(length: number = 16): string {
+  const bytes = new Uint8Array(length);
+  // Use cryptographically secure random values available in the browser
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
 interface SearchAlert {
   id: number;
   name: string;
@@ -170,7 +179,7 @@ export function LegalAlerts({ violations = {}, caseDetails = {} }: LegalAlertsPr
         alert_type: 'o',
         date_created: new Date().toISOString(),
         date_last_hit: null,
-        secret_key: Math.random().toString(36).substring(7)
+        secret_key: generateSecretKey()
       };
 
       setSearchAlerts([newAlert, ...searchAlerts]);
@@ -198,7 +207,7 @@ export function LegalAlerts({ violations = {}, caseDetails = {} }: LegalAlertsPr
         alert_type: 1,
         date_created: new Date().toISOString(),
         date_last_hit: null,
-        secret_key: Math.random().toString(36).substring(7),
+        secret_key: generateSecretKey(),
         docket_name: `Docket #${newDocketId}`
       };
 

@@ -33,31 +33,62 @@ export function AuthForm({ onAuth }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProvider, setLoadingProvider] = useState<AuthProvider | null>(null);
 
-  // Check for OAuth callback on mount
+  // Check for OAuth callback on mount and handle URL hash
   useEffect(() => {
-    const checkOAuthCallback = async () => {
+    const handleOAuthCallback = async () => {
       try {
+        // Check if we're returning from an OAuth redirect (hash contains access_token)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const error = hashParams.get('error');
+        const errorDescription = hashParams.get('error_description');
+
+        if (error) {
+          setError(`OAuth error: ${errorDescription || error}`);
+          // Clean up URL
+          window.history.replaceState({}, document.title, window.location.pathname);
+          return;
+        }
+
+        // Get session (this will work if we have tokens in the hash)
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (session && !sessionError) {
           // User successfully authenticated via OAuth
           onAuth(session.user.id, session.access_token);
           toast.success('Successfully signed in!');
+          // Clean up URL hash
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (accessToken) {
+          // We have a token in the hash, try to get the session
+          const { data: { session: newSession }, error: newError } = await supabase.auth.getSession();
+          if (newSession && !newError) {
+            onAuth(newSession.user.id, newSession.access_token);
+            toast.success('Successfully signed in!');
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('OAuth callback check error:', err);
+        setError(`Failed to complete sign in: ${err.message || 'Unknown error'}`);
       }
     };
 
-    checkOAuthCallback();
+    handleOAuthCallback();
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state change:', event, session?.user?.email);
+      
       if (event === 'SIGNED_IN' && session) {
         onAuth(session.user.id, session.access_token);
         toast.success('Successfully signed in!');
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
       } else if (event === 'SIGNED_OUT') {
         // Handle sign out if needed
+      } else if (event === 'TOKEN_REFRESHED' && session) {
+        // Token was refreshed, update if needed
       }
     });
 
@@ -82,23 +113,51 @@ export function AuthForm({ onAuth }: AuthFormProps) {
 
       const supabaseProvider = providerMap[provider] || provider;
 
+      // Build redirect URL - use current origin and pathname
+      const redirectTo = `${window.location.origin}${window.location.pathname}`;
+      
+      console.log('Initiating OAuth with provider:', supabaseProvider);
+      console.log('Redirect URL:', redirectTo);
+
       // Redirect to OAuth provider
       const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: supabaseProvider as any,
         options: {
-          redirectTo: `${window.location.origin}${window.location.pathname}`,
+          redirectTo: redirectTo,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
 
       if (oauthError) {
+        console.error('OAuth initiation error:', oauthError);
         throw oauthError;
       }
 
-      // The redirect will happen automatically
-      // The useEffect hook will handle the callback
+      // If we get a URL, the redirect should happen automatically
+      // But if the provider isn't configured, we might get an error
+      if (data?.url) {
+        console.log('Redirecting to OAuth provider...');
+        // The redirect happens automatically via Supabase
+        // Don't set loading to false - we're redirecting
+      } else {
+        throw new Error('OAuth provider not properly configured. Please check your Supabase settings.');
+      }
     } catch (err: any) {
       console.error('OAuth error:', err);
-      setError(`Failed to sign in with ${provider}. ${err.message || 'Please try again.'}`);
+      
+      // Provide more helpful error messages
+      let errorMessage = err.message || 'Please try again.';
+      
+      if (err.message?.includes('not configured') || err.message?.includes('disabled')) {
+        errorMessage = `${provider.charAt(0).toUpperCase() + provider.slice(1)} sign-in is not configured. Please contact support or use email/password sign-in.`;
+      } else if (err.message?.includes('redirect_uri_mismatch')) {
+        errorMessage = 'OAuth configuration error. Please contact support.';
+      }
+      
+      setError(`Failed to sign in with ${provider}. ${errorMessage}`);
       setIsLoading(false);
       setLoadingProvider(null);
     }
@@ -123,14 +182,43 @@ export function AuthForm({ onAuth }: AuthFormProps) {
           return;
         }
 
-        // Sign up
-        await api.signup(email, password, name.trim());
-        toast.success('Account created successfully! Logging you in...');
-        
-        // Auto-login after signup
-        setTimeout(() => {
-          handleLogin();
-        }, 500);
+        // Use Supabase client-side signup (more reliable)
+        const { data: signupData, error: signupError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              name: name.trim(),
+            },
+            emailRedirectTo: `${window.location.origin}${window.location.pathname}`,
+          },
+        });
+
+        if (signupError) {
+          throw signupError;
+        }
+
+        if (signupData.user) {
+          toast.success('Account created successfully! Logging you in...');
+          
+          // If email confirmation is required, show a message
+          if (!signupData.session) {
+            toast.info('Please check your email to confirm your account before signing in.');
+            setIsLoading(false);
+            return;
+          }
+          
+          // Auto-login after signup if session is available
+          if (signupData.session) {
+            onAuth(signupData.user.id, signupData.session.access_token);
+            toast.success('Welcome! You are now signed in.');
+          } else {
+            // Try to sign in after a brief delay
+            setTimeout(() => {
+              handleLogin();
+            }, 500);
+          }
+        }
       } else {
         // Login
         await handleLogin();
@@ -141,7 +229,9 @@ export function AuthForm({ onAuth }: AuthFormProps) {
       // Provide more helpful error messages
       let errorMessage = err.message || 'An error occurred';
       
-      if (errorMessage.includes('Invalid login credentials')) {
+      if (errorMessage.includes('User already registered') || errorMessage.includes('already registered')) {
+        errorMessage = 'An account with this email already exists. Please sign in instead.';
+      } else if (errorMessage.includes('Invalid login credentials')) {
         errorMessage = isSignUp 
           ? 'Failed to create account. Please try again.'
           : 'Invalid email or password. Please check your credentials or sign up if you don\'t have an account.';
@@ -149,6 +239,8 @@ export function AuthForm({ onAuth }: AuthFormProps) {
         errorMessage = 'Server is not properly configured. Please contact support or try again later.';
       } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('Network error')) {
         errorMessage = 'Cannot connect to server. Please check your internet connection and try again.';
+      } else if (errorMessage.includes('Email rate limit')) {
+        errorMessage = 'Too many signup attempts. Please wait a few minutes and try again.';
       }
       
       setError(errorMessage);

@@ -199,7 +199,8 @@
     </div>
 
     <script>
-        const API_KEY = 'AIzaSyCq4oz9bOt7CadY4dgDpQqcwnXFoIRtB54';
+        // Enter your API key here before running, or better, paste it directly into the app settings.
+        const API_KEY = '';
 
         async function saveAndTest() {
             const statusDiv = document.getElementById('status');
@@ -207,12 +208,11 @@
             
             // Show loading state
             statusDiv.className = 'status loading';
-            statusDiv.innerHTML = '⏳ Saving API key and testing connection...';
+            statusDiv.innerHTML = '⏳ Testing API key connection...';
             responseDiv.classList.remove('show');
 
-            // Save to localStorage
             try {
-                localStorage.setItem('VITE_GEMINI_API_KEY', API_KEY);
+                // Do not persist the API key in localStorage; test it only in memory.
                 
                 // Test the API
                 statusDiv.innerHTML = '⏳ Testing API with Gemini 2.5 Flash...';

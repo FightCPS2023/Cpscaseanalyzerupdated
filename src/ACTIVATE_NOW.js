@@ -10,13 +10,17 @@
   console.log('%c🤖 GEMINI AI ACTIVATION SCRIPT', 'font-size: 20px; font-weight: bold; color: #667eea;');
   console.log('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color: #667eea;');
   
-  const API_KEY = 'AIzaSyCq4oz9bOt7CadY4dgDpQqcwnXFoIRtB54';
+  // Paste your API key here before running this script.
+  const API_KEY = '';
   
-  // Step 1: Save API Key
-  console.log('%c\n📝 Step 1: Saving API key...', 'color: #3b82f6; font-weight: bold;');
-  localStorage.setItem('VITE_GEMINI_API_KEY', API_KEY);
-  console.log('%c✅ API key saved to localStorage!', 'color: #10b981;');
-  console.log('   Key:', API_KEY.substring(0, 20) + '...' + API_KEY.substring(API_KEY.length - 4));
+  // Step 1: Prepare API Key (do not persist to localStorage)
+  console.log('%c\n📝 Step 1: Using provided API key in memory only...', 'color: #3b82f6; font-weight: bold;');
+  console.log('%c✅ API key ready for testing (not saved to localStorage).', 'color: #10b981;');
+  if (API_KEY) {
+    console.log('   Key:', API_KEY.substring(0, 20) + '...' + API_KEY.substring(API_KEY.length - 4));
+  } else {
+    console.log('   No API key set. Please edit ACTIVATE_NOW.js and add your key to API_KEY.');
+  }
   
   // Step 2: Test Connection
   console.log('%c\n🔌 Step 2: Testing connection to Gemini API...', 'color: #3b82f6; font-weight: bold;');

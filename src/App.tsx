@@ -1,5 +1,6 @@
 // CPS Case Defense Analyzer - Main App Component
 import React, { useState, useEffect } from "react";
+import { Analytics } from "@vercel/analytics/react";
 // import { SpeedInsights } from "@vercel/speed-insights/react"; // Optional - install with: npm install @vercel/speed-insights
 import { initGA, trackPageView, trackCPSEvent } from "./utils/analytics";
 import { initSentry } from "./utils/sentry";
@@ -46,7 +47,7 @@ import { LegalDisclaimerPages as LegalDisclaimer, FooterDisclaimer, AIContentDis
 import { AuthForm } from "./components/AuthForm";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import { AccessibilityProvider, SkipToContent } from "./components/AccessibilityProvider";
-// import { StickyDisclaimerBanner } from "./components/StickyDisclaimerBanner"; // REMOVED
+// import { StickyDisclaimerBanner } from "./components/StickyDisclaimerBanner";
 import { DashboardOverview } from "./components/DashboardOverview";
 import { NavigationSidebar } from "./components/NavigationSidebar";
 import { WelcomeTour } from "./components/WelcomeTour";
@@ -1735,6 +1736,9 @@ export default function App() {
           
           {/* Help Bot */}
           <HelpBot />
+          
+          {/* Vercel Analytics */}
+          <Analytics />
           
           {/* Vercel Speed Insights */}
           {/* <SpeedInsights /> */}
