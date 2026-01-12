@@ -90,11 +90,15 @@ export function AdvocateDirectory({ userState, onSignUp }: AdvocateDirectoryProp
       setAdvocates(data);
       setFilteredAdvocates(data);
     } catch (error: any) {
-      console.error('Error loading advocates:', error);
-      // Only show toast for non-network errors
-      if (!error.message.includes('Server is not responding')) {
+      // Silently handle server errors - this is expected in demo mode
+      console.log('ℹ️ Advocate directory in demo mode (server not deployed)');
+      
+      // Don't show error toasts for "Server not deployed yet"
+      if (!error.message.includes('Server not deployed') && 
+          !error.message.includes('Server is not responding')) {
         toast.error('Failed to load advocates. Please try again.');
       }
+      
       // Fall back to empty array
       setAdvocates([]);
       setFilteredAdvocates([]);

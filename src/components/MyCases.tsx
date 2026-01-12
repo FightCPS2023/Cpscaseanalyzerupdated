@@ -223,7 +223,7 @@ export function MyCases({
                   <span>Opened: {formatDate(caseItem.dateOpened)}</span>
                 </div>
 
-                {caseItem.children.length > 0 && (
+                {caseItem.children && caseItem.children.length > 0 && (
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Users className="w-4 h-4 flex-shrink-0" />
                     <span>

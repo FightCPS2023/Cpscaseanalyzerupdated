@@ -1,100 +1,102 @@
 #!/bin/bash
 
-# The CPS Punisher - Deployment Script
-# Copyright © 2024 Darren Guay - All Rights Reserved
+################################################################################
+# 🚀 CPS PUNISHER - AUTOMATED DEPLOYMENT SCRIPT
+# 
+# This script automates the deployment process:
+# 1. Commits all changes to Git
+# 2. Pushes to GitHub
+# 3. Deploys to Vercel production
+#
+# Usage: bash deploy.sh "your commit message"
+# Example: bash deploy.sh "added tier selection"
+################################################################################
 
-echo "🛡️  THE CPS PUNISHER - DEPLOYMENT SCRIPT"
-echo "=========================================="
+set -e  # Exit on any error
+
+# Colors for output
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+# Default commit message
+COMMIT_MSG=${1:-"chore: update deployment"}
+
+echo ""
+echo -e "${BLUE}════════════════════════════════════════════════════════════════${NC}"
+echo -e "${BLUE}     🚀 CPS PUNISHER - AUTOMATED DEPLOYMENT                    ${NC}"
+echo -e "${BLUE}════════════════════════════════════════════════════════════════${NC}"
 echo ""
 
-# Check if DEV_MODE is disabled
-echo "🔍 Checking DEV_MODE status..."
-if grep -q "const DEV_MODE = true" App.tsx; then
-    echo "❌ ERROR: DEV_MODE is still enabled in App.tsx!"
-    echo "   Please set DEV_MODE = false before deploying to production."
-    exit 1
-fi
-echo "✅ DEV_MODE is disabled"
-echo ""
-
-# Check for required files
-echo "📋 Checking required files..."
-required_files=("package.json" "vite.config.ts" "index.html" "App.tsx")
-for file in "${required_files[@]}"; do
-    if [ ! -f "$file" ]; then
-        echo "❌ ERROR: Required file $file not found!"
-        exit 1
-    fi
-done
-echo "✅ All required files present"
-echo ""
-
-# Install dependencies
-echo "📦 Installing dependencies..."
-npm install
-if [ $? -ne 0 ]; then
-    echo "❌ ERROR: npm install failed!"
-    exit 1
-fi
-echo "✅ Dependencies installed"
-echo ""
-
-# Run build
-echo "🔨 Building production bundle..."
-npm run build
-if [ $? -ne 0 ]; then
-    echo "❌ ERROR: Build failed!"
-    exit 1
-fi
-echo "✅ Build successful"
-echo ""
-
-# Check if dist directory exists
-if [ ! -d "dist" ]; then
-    echo "❌ ERROR: dist directory not found!"
-    exit 1
-fi
-echo "✅ dist directory created"
-echo ""
-
-# Git check
-echo "📝 Checking Git status..."
-if [ -d ".git" ]; then
-    echo "✅ Git repository initialized"
-    
-    # Check for uncommitted changes
-    if [[ -n $(git status -s) ]]; then
-        echo "⚠️  WARNING: You have uncommitted changes"
-        echo "   Commit them before deploying:"
-        echo "   git add ."
-        echo "   git commit -m 'Your commit message'"
-        echo ""
-    else
-        echo "✅ No uncommitted changes"
-    fi
+# Step 1: Check for uncommitted changes
+echo -e "${YELLOW}📋 Step 1: Checking for changes...${NC}"
+if [ -n "$(git status --porcelain)" ]; then
+    echo -e "${GREEN}✓ Changes detected${NC}"
 else
-    echo "⚠️  WARNING: Not a git repository"
-    echo "   Initialize git with: git init"
-    echo ""
+    echo -e "${YELLOW}⚠ No changes detected. Continuing anyway...${NC}"
 fi
+echo ""
 
-echo "=========================================="
-echo "✅ PRE-DEPLOYMENT CHECKS COMPLETE!"
+# Step 2: Git add
+echo -e "${YELLOW}📦 Step 2: Staging all changes...${NC}"
+git add .
+echo -e "${GREEN}✓ All files staged${NC}"
 echo ""
-echo "🚀 Ready to deploy! Choose your platform:"
+
+# Step 3: Git commit
+echo -e "${YELLOW}💾 Step 3: Committing changes...${NC}"
+echo -e "${BLUE}   Commit message: ${COMMIT_MSG}${NC}"
+git commit -m "$COMMIT_MSG" || echo -e "${YELLOW}⚠ Nothing to commit or commit failed${NC}"
 echo ""
-echo "OPTION 1 - VERCEL (Recommended):"
-echo "  npm install -g vercel"
-echo "  vercel --prod"
+
+# Step 4: Git push
+echo -e "${YELLOW}☁️  Step 4: Pushing to GitHub...${NC}"
+git push || {
+    echo -e "${RED}✗ Git push failed. Do you have a remote set up?${NC}"
+    echo -e "${YELLOW}   Run: git remote add origin https://github.com/YOUR_USERNAME/cps-punisher.git${NC}"
+    exit 1
+}
+echo -e "${GREEN}✓ Pushed to GitHub${NC}"
 echo ""
-echo "OPTION 2 - NETLIFY:"
-echo "  npm install -g netlify-cli"
-echo "  netlify deploy --prod"
+
+# Step 5: Check if Vercel CLI is installed
+echo -e "${YELLOW}🔧 Step 5: Checking Vercel CLI...${NC}"
+if ! command -v vercel &> /dev/null; then
+    echo -e "${YELLOW}⚠ Vercel CLI not found. Installing...${NC}"
+    npm install -g vercel
+fi
+echo -e "${GREEN}✓ Vercel CLI ready${NC}"
 echo ""
-echo "OPTION 3 - MANUAL:"
-echo "  Upload the /dist folder to your hosting provider"
+
+# Step 6: Deploy to Vercel
+echo -e "${YELLOW}🚀 Step 6: Deploying to Vercel production...${NC}"
+echo -e "${BLUE}   This may take 2-3 minutes...${NC}"
 echo ""
-echo "📚 For detailed instructions, see DEPLOYMENT.md"
+vercel --prod || {
+    echo -e "${RED}✗ Deployment failed${NC}"
+    exit 1
+}
 echo ""
-echo "🛡️  Fight Back. Defend Your Family."
-echo "   Copyright © 2024 Darren Guay - All Rights Reserved"
+
+# Success message
+echo ""
+echo -e "${GREEN}════════════════════════════════════════════════════════════════${NC}"
+echo -e "${GREEN}                    ✅ DEPLOYMENT SUCCESSFUL!                    ${NC}"
+echo -e "${GREEN}════════════════════════════════════════════════════════════════${NC}"
+echo ""
+echo -e "${BLUE}Your app is now live! 🎉${NC}"
+echo ""
+echo -e "${YELLOW}Next steps:${NC}"
+echo "  1. Open your production URL"
+echo "  2. Test the tier selection flow"
+echo "  3. Verify all features work"
+echo "  4. Share with users!"
+echo ""
+echo -e "${BLUE}Need to check deployment status?${NC}"
+echo "  → Run: vercel ls"
+echo "  → Run: vercel logs"
+echo ""
+echo -e "${GREEN}Happy deploying! 🚀${NC}"
+echo ""

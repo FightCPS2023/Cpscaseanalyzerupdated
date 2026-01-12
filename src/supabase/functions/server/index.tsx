@@ -216,13 +216,12 @@ app.post("/make-server-a24eaa40/auth/login", async (c) => {
 
     // Get environment variables
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    // Try both SUPABASE_ANON_KEY and fall back to the known key
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJld2drcmdtY21pa2l2eGpuZmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NzIzMzQsImV4cCI6MjA3OTM0ODMzNH0.i-kP7mvSAU9hlpMBKVHesRQj90B9jm47luFMuvF4lhQ';
+    // Get SUPABASE_ANON_KEY from environment - NO FALLBACK for security
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
     
     console.log('Login attempt:', { email, hasPassword: !!password });
     console.log('SUPABASE_URL exists:', !!supabaseUrl);
-    console.log('SUPABASE_ANON_KEY exists:', !!Deno.env.get('SUPABASE_ANON_KEY'));
-    console.log('Using fallback key:', !Deno.env.get('SUPABASE_ANON_KEY'));
+    console.log('SUPABASE_ANON_KEY exists:', !!supabaseAnonKey);
 
     if (!supabaseUrl) {
       console.error('Missing SUPABASE_URL environment variable');

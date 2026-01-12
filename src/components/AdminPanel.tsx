@@ -23,11 +23,10 @@ export function AdminPanel() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadPendingItems();
+    loadPending();
   }, []);
 
-  const loadPendingItems = async () => {
-    setIsLoading(true);
+  const loadPending = async () => {
     try {
       const [advocates, resources] = await Promise.all([
         adminApi.getPendingAdvocates(),
@@ -36,8 +35,17 @@ export function AdminPanel() {
       setPendingAdvocates(advocates);
       setPendingResources(resources);
     } catch (error: any) {
-      console.error('Error loading pending items:', error);
-      toast.error('Failed to load pending items');
+      console.log('ℹ️ Admin panel in demo mode (server not deployed)');
+      
+      // Don't show error toasts for "Server not deployed yet"
+      if (!error.message?.includes('Server not deployed') && 
+          !error.message?.includes('Server is not responding')) {
+        toast.error('Failed to load pending items');
+      }
+      
+      // Fall back to empty arrays
+      setPendingAdvocates([]);
+      setPendingResources([]);
     } finally {
       setIsLoading(false);
     }

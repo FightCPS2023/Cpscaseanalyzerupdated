@@ -45,7 +45,7 @@ import { LegalDisclaimerPages as LegalDisclaimer, FooterDisclaimer, AIContentDis
 import { AuthForm } from "./components/AuthForm";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import { AccessibilityProvider, SkipToContent } from "./components/AccessibilityProvider";
-// import { StickyDisclaimerBanner } from "./components/StickyDisclaimerBanner"; // REMOVED
+import { StickyDisclaimerBanner } from "./components/StickyDisclaimerBanner";
 import { DashboardOverview } from "./components/DashboardOverview";
 import { NavigationSidebar } from "./components/NavigationSidebar";
 import { WelcomeTour } from "./components/WelcomeTour";
@@ -53,7 +53,7 @@ import { HelpCenter } from "./components/HelpCenter";
 import { QuickTipsBar } from "./components/QuickTipsBar";
 import { HelpBot } from "./components/HelpBot";
 import { CriminalCaseComponent } from "./components/CriminalCaseComponent";
-import { Scale, FileText, AlertTriangle, Lightbulb, Shield, CheckSquare, Calendar, FileEdit, LogOut, Loader2, Cloud, HardDrive, Mic, Crown, FileCheck, Menu, Moon, Sun, Heart, Target, MessageSquare, Clock } from "lucide-react";
+import { Scale, FileText, AlertTriangle, Lightbulb, Shield, CheckSquare, Calendar, FileEdit, LogOut, Loader2, Cloud, HardDrive, Mic, Crown, FileCheck, Menu, Moon, Sun, Heart, Target, MessageSquare, Clock, Flag } from "lucide-react";
 import { Book, Library, Brain, BookOpen } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "./components/ui/alert";
 import { api } from "./utils/api";
@@ -84,6 +84,10 @@ import { VisitationLog } from "./components/VisitationLog";
 import { ServiceTracker } from "./components/ServiceTracker";
 import { CommunicationLog } from "./components/CommunicationLog";
 import { CourtCountdown } from "./components/CourtCountdown";
+import { MississippiLegalResources } from "./components/MississippiLegalResources";
+import { MississippiCourtsDirectory } from "./components/MississippiCourtsDirectory";
+import { FederalCPSResources } from "./components/FederalCPSResources";
+import { OnboardingFlow } from "./components/OnboardingFlow";
 
 // DEV MODE: Set to true to bypass authentication while building
 const DEV_MODE = false; // Set to false for production deployment
@@ -115,6 +119,15 @@ export default function App() {
     const hasSeenLanding = localStorage.getItem('cpsHasSeenLanding');
     return !hasSeenLanding;
   });
+
+  // Onboarding flow state
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    // Check if user has completed onboarding
+    const hasCompletedOnboarding = localStorage.getItem('cpsHasCompletedOnboarding');
+    return !hasCompletedOnboarding;
+  });
+
+  const [userType, setUserType] = useState<'parent' | 'attorney'>('parent');
 
   // Authentication state
   const [auth, setAuth] = useState<AuthState>(() => {
@@ -651,10 +664,40 @@ export default function App() {
   };
 
   // Handle landing page "Get Started" click
-  const handleGetStarted = () => {
+  const handleGetStarted = (selectedUserType: 'parent' | 'attorney') => {
+    setUserType(selectedUserType);
     setShowLandingPage(false);
     localStorage.setItem('cpsHasSeenLanding', 'true');
     trackCPSEvent.userAction('landing_page_get_started', 'clicked');
+  };
+
+  // Handle onboarding completion
+  const handleOnboardingComplete = (caseData: CaseData, uploadedDocs?: File[]) => {
+    // Save the case
+    const newCases = [...cases, caseData];
+    setCases(newCases);
+    setActiveCase(caseData);
+    localStorage.setItem('cpsCases', JSON.stringify(newCases));
+    
+    // If documents were uploaded, add them to the documents state
+    if (uploadedDocs && uploadedDocs.length > 0) {
+      const newDocuments = uploadedDocs.map((file, index) => ({
+        id: `doc-${Date.now()}-${index}`,
+        title: file.name,
+        content: '', // Will be populated when file is read
+        date: new Date().toISOString().split('T')[0],
+        type: file.type || 'application/pdf'
+      }));
+      setDocuments(prev => [...prev, ...newDocuments]);
+    }
+    
+    // Mark onboarding as complete
+    setShowOnboarding(false);
+    localStorage.setItem('cpsHasCompletedOnboarding', 'true');
+    
+    // Show success message
+    toast.success(`Welcome! Your case "${caseData.caseName}" has been created.`);
+    trackCPSEvent.userAction('onboarding_completed', 'success');
   };
 
   // Case Management Functions
@@ -710,6 +753,16 @@ export default function App() {
     return <LandingPageRouter onGetStarted={handleGetStarted} />;
   }
 
+  // Show onboarding flow after landing page (if not completed)
+  if (showOnboarding && !showLandingPage) {
+    return (
+      <OnboardingFlow 
+        onComplete={handleOnboardingComplete}
+        userType={userType}
+      />
+    );
+  }
+
   // Show loading state
   if (isLoading) {
     return (
@@ -725,10 +778,19 @@ export default function App() {
   // Show authentication screen if not authenticated
   if (!auth.accessToken) {
     return (
-      <AuthForm onAuth={(userId, accessToken) => {
-        setAuth({ userId, accessToken });
-        toast.success('Welcome to The CPS Punisher!');
-      }} />
+      <SubscriptionProvider>
+        <AuthForm onAuth={(userId, accessToken, tier) => {
+          setAuth({ userId, accessToken });
+          
+          // If tier was selected, it will be passed from AuthForm
+          // Store it in localStorage so SubscriptionProvider can pick it up
+          if (tier) {
+            localStorage.setItem('cps_user_tier', tier);
+          }
+          
+          toast.success('Welcome to The CPS Punisher!');
+        }} />
+      </SubscriptionProvider>
     );
   }
 
@@ -743,7 +805,7 @@ export default function App() {
             // You could save userType to state if needed
           }} />
           <SkipToContent />
-          {/* StickyDisclaimerBanner was removed */}
+          <StickyDisclaimerBanner />
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-black dark:to-gray-900" lang="en">
           <header className="sticky top-0 z-50 border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shadow-sm" role="banner">
             <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-4">
@@ -814,8 +876,8 @@ export default function App() {
                       </>
                     ) : (
                       <>
-                        <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                        <HardDrive className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400" />
+                        <div className="w-2 h-2 bg-primary/70 rounded-full" />
+                        <HardDrive className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary dark:text-primary" />
                         <span className="hidden md:inline font-medium text-gray-700 dark:text-gray-300">Local</span>
                       </>
                     )}
@@ -859,14 +921,14 @@ export default function App() {
             </Alert>
 
             {/* Location/State Selector */}
-            <Card className="mb-4 sm:mb-6 p-4 sm:p-6 bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-950/40 dark:via-blue-950/40 dark:to-indigo-950/40 border-2 border-purple-200 dark:border-purple-800 shadow-lg" role="region" aria-label="State Selection">
+            <Card className="mb-4 sm:mb-6 p-4 sm:p-6 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/40 dark:to-orange-950/40 border-2 border-primary/30 dark:border-primary/50 shadow-lg" role="region" aria-label="State Selection">
               <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg" aria-hidden="true">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary to-red-700 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg" aria-hidden="true">
                   <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
                 <div className="flex-1 min-w-0 w-full">
-                  <h2 className="mb-2 text-base sm:text-lg font-bold text-purple-900 dark:text-purple-100">Set Your State for Customized Legal Information</h2>
-                  <p className="text-xs sm:text-sm text-purple-800 dark:text-purple-200 mb-3 sm:mb-4 leading-relaxed">
+                  <h2 className="mb-2 text-base sm:text-lg font-bold text-red-900 dark:text-red-100">Set Your State for Customized Legal Information</h2>
+                  <p className="text-xs sm:text-sm text-red-800 dark:text-red-200 mb-3 sm:mb-4 leading-relaxed">
                     <strong>Important:</strong> CPS laws and procedures vary significantly by state. Select your state to receive jurisdiction-specific guidance, case law, and defense strategies. 
                     This ensures the information you receive is relevant to your legal jurisdiction.
                     {detectedLocation && !userState && ` We detected you may be in ${detectedLocation}.`}
@@ -874,7 +936,7 @@ export default function App() {
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                     <label htmlFor="state-selector" className="sr-only">Select your state</label>
                     <Select value={userState} onValueChange={handleStateChange}>
-                      <SelectTrigger className="w-full sm:w-72 bg-white dark:bg-gray-900 border-2 border-purple-300 dark:border-purple-700 h-10 sm:h-11 shadow-sm">
+                      <SelectTrigger className="w-full sm:w-72 bg-white dark:bg-gray-900 border-2 border-primary/30 dark:border-primary/50 h-10 sm:h-11 shadow-sm">
                         <SelectValue placeholder="Select your state..." />
                       </SelectTrigger>
                       <SelectContent>
@@ -942,7 +1004,7 @@ export default function App() {
             </Card>
 
             {/* Case Selector */}
-            <Card className="mb-4 sm:mb-6 p-4 sm:p-5 bg-gradient-to-r from-blue-50 via-cyan-50 to-teal-50 dark:from-blue-950/40 dark:via-cyan-950/40 dark:to-teal-950/40 border-2 border-blue-200 dark:border-blue-800 shadow-lg" role="region" aria-label="Case Selection">
+            <Card className="mb-4 sm:mb-6 p-4 sm:p-5 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/40 dark:to-orange-950/40 border-2 border-primary/30 dark:border-primary/50 shadow-lg" role="region" aria-label="Case Selection">
               <CaseSelector
                 cases={cases}
                 activeCase={activeCase}
@@ -1164,6 +1226,30 @@ export default function App() {
                   <span>Resources</span>
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="mississippi-resources" 
+                  className="modern-tab"
+                  aria-label="Mississippi Legal Resources - State-Specific CPS Info"
+                >
+                  <MapPin className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                  <span>MS Resources</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="mississippi-courts" 
+                  className="modern-tab"
+                  aria-label="Mississippi Courts Directory - All Court Locations"
+                >
+                  <Scale className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                  <span>MS Courts</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="federal-resources" 
+                  className="modern-tab"
+                  aria-label="Federal CPS Resources - DOJ, Federal Courts, National Info"
+                >
+                  <Flag className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                  <span>Federal</span>
+                </TabsTrigger>
+                <TabsTrigger 
                   value="legal-research" 
                   className="modern-tab"
                   aria-label="Legal Research Hub - Access 40+ Million Cases"
@@ -1294,6 +1380,18 @@ export default function App() {
 
               <TabsContent value="legal-resources">
                 <LegalResourcesLibrary />
+              </TabsContent>
+
+              <TabsContent value="mississippi-resources">
+                <MississippiLegalResources />
+              </TabsContent>
+
+              <TabsContent value="mississippi-courts">
+                <MississippiCourtsDirectory />
+              </TabsContent>
+
+              <TabsContent value="federal-resources">
+                <FederalCPSResources />
               </TabsContent>
 
               <TabsContent value="legal-research">

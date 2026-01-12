@@ -29,7 +29,7 @@ The CPS Case Defense Analyzer uses a combination of Supabase backend services an
 ```
 Development:  http://localhost:3000
 Production:   https://api.cpsdefenseanalyzer.com
-Supabase:     https://[project-id].supabase.co
+Supabase:     https://rewgkrgmcmikivxjnfdq.supabase.co
 ```
 
 ### **API Architecture**

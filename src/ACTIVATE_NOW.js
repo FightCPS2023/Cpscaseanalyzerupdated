@@ -7,10 +7,17 @@
 
 (async function activateGeminiAI() {
   console.clear();
-  console.log('%c🤖 GEMINI AI ACTIVATION SCRIPT', 'font-size: 20px; font-weight: bold; color: #667eea;');
+  console.log('%c🤖 ACTIVATING GEMINI AI...', 'color: #667eea; font-size: 16px; font-weight: bold;');
   console.log('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color: #667eea;');
   
-  const API_KEY = 'AIzaSyCq4oz9bOt7CadY4dgDpQqcwnXFoIRtB54';
+  // API key should be loaded from environment variables
+  const API_KEY = prompt('Please enter your Gemini API key:') || '';
+  
+  if (!API_KEY) {
+    console.log('%c❌ NO API KEY PROVIDED', 'color: #ef4444; font-size: 14px;');
+    console.log('%cGet your free API key at: https://aistudio.google.com/app/apikey', 'color: #3b82f6;');
+    return;
+  }
   
   // Step 1: Save API Key
   console.log('%c\n📝 Step 1: Saving API key...', 'color: #3b82f6; font-weight: bold;');

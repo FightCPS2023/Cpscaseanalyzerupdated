@@ -9,9 +9,10 @@ import { Separator } from "./ui/separator";
 import { api } from "../utils/api";
 import { toast } from "sonner@2.0.3";
 import { CPSPunisherLogo } from "./CPSPunisherLogo";
+import { TierSelection } from "./TierSelection";
 
 interface AuthFormProps {
-  onAuth: (userId: string, accessToken: string) => void;
+  onAuth: (userId: string, accessToken: string, tier?: 'free' | 'essential' | 'professional' | 'attorney' | 'enterprise') => void;
 }
 
 type AuthProvider = 'email' | 'google' | 'microsoft' | 'apple' | 'yahoo';
@@ -24,6 +25,8 @@ export function AuthForm({ onAuth }: AuthFormProps) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProvider, setLoadingProvider] = useState<AuthProvider | null>(null);
+  const [showTierSelection, setShowTierSelection] = useState(false);
+  const [pendingAuth, setPendingAuth] = useState<{ userId: string; accessToken: string } | null>(null);
 
   const handleSocialAuth = async (provider: Exclude<AuthProvider, 'email'>) => {
     setError('');
@@ -39,7 +42,9 @@ export function AuthForm({ onAuth }: AuthFormProps) {
       const mockUserId = `${provider}_${Math.random().toString(36).substring(7)}`;
       const mockToken = `token_${Math.random().toString(36).substring(7)}`;
       
-      onAuth(mockUserId, mockToken);
+      // Show tier selection for new signups
+      setPendingAuth({ userId: mockUserId, accessToken: mockToken });
+      setShowTierSelection(true);
     } catch (err: any) {
       setError(`Failed to sign in with ${provider}. Please try again.`);
     } finally {
@@ -69,14 +74,17 @@ export function AuthForm({ onAuth }: AuthFormProps) {
 
         // Sign up
         await api.signup(email, password, name.trim());
-        toast.success('Account created successfully! Logging you in...');
+        toast.success('Account created successfully!');
         
-        // Auto-login after signup
-        setTimeout(() => {
-          handleLogin();
-        }, 500);
+        // Show tier selection before completing auth
+        const loginData = await api.login(email, password);
+        if (loginData.accessToken && loginData.userId) {
+          setPendingAuth({ userId: loginData.userId, accessToken: loginData.accessToken });
+          setShowTierSelection(true);
+          setIsLoading(false);
+        }
       } else {
-        // Login
+        // Login - go straight to app
         await handleLogin();
       }
     } catch (err: any) {
@@ -117,6 +125,37 @@ export function AuthForm({ onAuth }: AuthFormProps) {
       setIsLoading(false);
     }
   };
+
+  const handleTierSelected = (tier: 'free' | 'essential' | 'professional' | 'attorney' | 'enterprise') => {
+    console.log('User selected tier:', tier);
+    
+    // In production, this would save the tier to the database
+    // and handle payment processing for paid tiers
+    
+    // For now, complete authentication
+    if (pendingAuth) {
+      toast.success(`Welcome! You're on the ${tier} plan.`);
+      onAuth(pendingAuth.userId, pendingAuth.accessToken, tier);
+    }
+  };
+
+  const handleSkipTierSelection = () => {
+    // User skipped tier selection - default to free tier
+    if (pendingAuth) {
+      toast.success('Welcome! You\'re on the free plan.');
+      onAuth(pendingAuth.userId, pendingAuth.accessToken, 'free');
+    }
+  };
+
+  // Show tier selection after signup
+  if (showTierSelection) {
+    return (
+      <TierSelection 
+        onSelectTier={handleTierSelected}
+        onSkip={handleSkipTierSelection}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-3 sm:p-4 md:p-6">

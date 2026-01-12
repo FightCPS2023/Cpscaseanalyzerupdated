@@ -21,10 +21,10 @@ export async function initializeCommunityData(): Promise<boolean> {
     localStorage.setItem('cps_community_initialized', 'true');
     return true;
   } catch (error: any) {
-    // Server not available or already seeded - this is expected in dev mode
-    console.warn('Community data seed skipped:', error.message || 'Server not responding');
+    // Server not available - this is expected during development before server deployment
+    console.log('ℹ️ Community data seed skipped (server not deployed yet - this is normal)');
     
-    // Mark as initialized anyway to avoid repeated errors
+    // Mark as initialized anyway to avoid repeated attempts
     // The community components will handle empty data gracefully
     localStorage.setItem('cps_community_initialized', 'true');
     return true;

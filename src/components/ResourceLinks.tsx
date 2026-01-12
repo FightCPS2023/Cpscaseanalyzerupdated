@@ -53,6 +53,7 @@ export function ResourceLinks({ userState }: ResourceLinksProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
+  const [isLoading, setIsLoading] = useState(true);
   const [isAddingResource, setIsAddingResource] = useState(false);
   const [newResource, setNewResource] = useState({
     title: '',
@@ -75,13 +76,18 @@ export function ResourceLinks({ userState }: ResourceLinksProps) {
       setResources(data);
       setFilteredResources(data);
     } catch (error: any) {
-      console.error('Error loading resources:', error);
-      // Only show toast for non-network errors
-      if (!error.message.includes('Server is not responding')) {
+      console.log('ℹ️ Resource hub in demo mode (server not deployed)');
+      
+      // Don't show error toasts for "Server not deployed yet"
+      if (!error.message?.includes('Server not deployed') && 
+          !error.message?.includes('Server is not responding')) {
         toast.error('Failed to load resources. Please try again.');
       }
+      
       setResources([]);
       setFilteredResources([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 

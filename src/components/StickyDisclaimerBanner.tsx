@@ -48,24 +48,23 @@ export function StickyDisclaimerBanner() {
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 animate-in slide-in-from-top">
-      <Alert className="rounded-none border-0 border-b-4 border-amber-500 bg-gradient-to-r from-amber-100 via-amber-50 to-amber-100 dark:from-amber-950 dark:via-amber-900 dark:to-amber-950 shadow-lg">
+      <Alert className="rounded-none border-0 border-b-2 border-amber-500 bg-gradient-to-r from-amber-100 via-amber-50 to-amber-100 dark:from-amber-950 dark:via-amber-900 dark:to-amber-950 shadow-md">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-[auto_1fr_auto] items-start gap-3 py-2">
-            <AlertTriangle className="h-5 w-5 text-amber-700 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-            <AlertDescription className="text-amber-900 dark:text-amber-100 text-sm font-medium w-full">
+          <div className="flex items-center gap-2 py-1.5 overflow-x-auto">
+            <AlertTriangle className="h-4 w-4 text-amber-700 dark:text-amber-400 flex-shrink-0" />
+            <AlertDescription className="text-amber-900 dark:text-amber-100 text-xs font-medium whitespace-nowrap">
               <strong>LEGAL NOTICE:</strong> This app provides legal information, NOT legal advice. 
-              We are NOT attorneys. No attorney-client relationship is created. 
-              <span className="hidden sm:inline"> CPS cases can result in permanent loss of parental rights.</span>
-              {' '}<strong className="underline">You MUST consult a licensed attorney before taking any legal action.</strong>
+              We are NOT attorneys. No attorney-client relationship is created.
+              {' '}<strong className="underline">You MUST consult a licensed attorney.</strong>
             </AlertDescription>
             <Button
               variant="ghost"
               size="sm"
               onClick={handleDismiss}
-              className="h-6 w-6 p-0 hover:bg-amber-200 dark:hover:bg-amber-800 flex-shrink-0"
+              className="h-5 w-5 p-0 hover:bg-amber-200 dark:hover:bg-amber-800 flex-shrink-0"
               aria-label="Dismiss disclaimer banner"
             >
-              <X className="h-4 w-4 text-amber-700 dark:text-amber-300" />
+              <X className="h-3 w-3 text-amber-700 dark:text-amber-300" />
             </Button>
           </div>
         </div>
