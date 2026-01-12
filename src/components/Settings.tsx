@@ -141,9 +141,9 @@ export function Settings() {
     } catch (error) {
       setValidationResult('error');
       setTestOutput(`❌ Error: ${error instanceof Error ? error.message : 'Invalid API key'}`);
-      // Restore previous key (already encrypted or null)
+      // Restore previous key only if it was already stored in encrypted form
       const previousKey = localStorage.getItem(API_KEY_STORAGE_KEY);
-      if (previousKey) {
+      if (previousKey && previousKey.startsWith(ENCRYPTED_PREFIX)) {
         localStorage.setItem(API_KEY_STORAGE_KEY, previousKey);
       } else {
         localStorage.removeItem(API_KEY_STORAGE_KEY);
