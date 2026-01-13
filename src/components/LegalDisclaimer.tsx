@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
+import { Shield, Scale, AlertTriangle, ExternalLink, Info, Eye, EyeOff, CheckCircle, GraduationCap, Briefcase } from 'lucide-react';
+import { Alert, AlertTitle, AlertDescription } from './ui/alert';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from './ui/dialog';
 import { Checkbox } from './ui/checkbox';
 import { Label } from './ui/label';
-import { 
-  AlertTriangle, Shield, Scale, FileText, Info, 
-  CheckCircle, X, GraduationCap, Briefcase
-} from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import { EnvironmentVariablesViewer } from './EnvironmentVariablesViewer';
 
 interface LegalDisclaimerProps {
   onAccept: (userType: 'parent' | 'attorney') => void;
@@ -408,6 +406,11 @@ export function FooterDisclaimer() {
 
           {/* Copyright & Agreement */}
           <div className="text-center space-y-3 pt-6 border-t-2">
+            {/* Environment Variables Viewer Button */}
+            <div className="flex justify-center mb-4">
+              <EnvironmentVariablesViewer />
+            </div>
+            
             <p className="text-xs sm:text-sm font-semibold text-foreground">
               © 2024-2025 The CPS Punisher / CPS Case Defense Analyzer. All Rights Reserved.
             </p>

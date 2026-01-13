@@ -765,3 +765,434 @@ export const STATE_COURT_IDS: Record<string, string[]> = {
 export function getCourtIdsForState(state: string): string[] {
   return STATE_COURT_IDS[state] || [];
 }
+
+/**
+ * RECAP Documents API
+ * Access to PACER documents uploaded via RECAP extension
+ */
+export interface RecapDocumentResult {
+  id: number;
+  docket_entry: number;
+  date_created: string;
+  date_modified: string;
+  date_upload: string;
+  document_type: string;
+  document_number: string;
+  attachment_number: number | null;
+  pacer_doc_id: string;
+  is_available: boolean;
+  sha1: string;
+  page_count: number | null;
+  file_size: number | null;
+  filepath_local: string;
+  filepath_ia: string;
+  ia_upload_failure_count: number | null;
+  thumbnail: string | null;
+  thumbnail_status: string;
+  plain_text: string;
+  ocr_status: string;
+  is_free_on_pacer: boolean;
+  is_sealed: boolean;
+  description: string;
+  absolute_url: string;
+}
+
+export interface RecapDocumentSearchParams {
+  q?: string;
+  docket_entry?: number;
+  description?: string;
+  document_number?: string;
+  attachment_number?: number;
+  is_available?: boolean;
+  page?: number;
+  page_size?: number;
+}
+
+/**
+ * Search RECAP documents
+ */
+export async function searchRecapDocuments(params: RecapDocumentSearchParams): Promise<any> {
+  try {
+    const queryParams = new URLSearchParams();
+    
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryParams.append(key, String(value));
+      }
+    });
+
+    const url = `${COURTLISTENER_API_BASE}/recap-documents/?${queryParams.toString()}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`RECAP API error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error searching RECAP documents:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get RECAP document by ID
+ */
+export async function getRecapDocumentById(id: number): Promise<RecapDocumentResult | null> {
+  try {
+    const response = await fetch(`${COURTLISTENER_API_BASE}/recap-documents/${id}/`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`RECAP document fetch error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching RECAP document:', error);
+    return null;
+  }
+}
+
+/**
+ * Parties API
+ * Access information about parties involved in cases
+ */
+export interface PartyResult {
+  id: number;
+  name: string;
+  party_type: string;
+  extra_info: string;
+  date_terminated: string | null;
+  attorneys: number[]; // Attorney IDs
+}
+
+export interface PartySearchParams {
+  q?: string;
+  name?: string;
+  party_type?: string;
+  docket?: number;
+  page?: number;
+  page_size?: number;
+}
+
+/**
+ * Search parties
+ */
+export async function searchParties(params: PartySearchParams): Promise<any> {
+  try {
+    const queryParams = new URLSearchParams();
+    
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryParams.append(key, String(value));
+      }
+    });
+
+    const url = `${COURTLISTENER_API_BASE}/parties/?${queryParams.toString()}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Parties API error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error searching parties:', error);
+    throw error;
+  }
+}
+
+/**
+ * Attorneys API
+ * Access information about attorneys involved in cases
+ */
+export interface AttorneyResult {
+  id: number;
+  name: string;
+  contact_raw: string;
+  phone: string;
+  fax: string;
+  email: string;
+  roles: {
+    role: string;
+    date_action: string | null;
+  }[];
+}
+
+export interface AttorneySearchParams {
+  q?: string;
+  name?: string;
+  docket?: number;
+  page?: number;
+  page_size?: number;
+}
+
+/**
+ * Search attorneys
+ */
+export async function searchAttorneys(params: AttorneySearchParams): Promise<any> {
+  try {
+    const queryParams = new URLSearchParams();
+    
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryParams.append(key, String(value));
+      }
+    });
+
+    const url = `${COURTLISTENER_API_BASE}/attorneys/?${queryParams.toString()}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Attorneys API error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error searching attorneys:', error);
+    throw error;
+  }
+}
+
+/**
+ * Opinion Citations API
+ * Track which cases cite which other cases
+ */
+export interface OpinionsCitedResult {
+  id: number;
+  citing_opinion: number;
+  cited_opinion: number;
+  depth: number;
+  quoted: boolean;
+  treatment: number;
+  citation_count: number;
+}
+
+export interface OpinionsCitedSearchParams {
+  citing_opinion?: number;
+  cited_opinion?: number;
+  depth?: number;
+  page?: number;
+  page_size?: number;
+}
+
+/**
+ * Search opinion citations
+ */
+export async function searchOpinionsCited(params: OpinionsCitedSearchParams): Promise<any> {
+  try {
+    const queryParams = new URLSearchParams();
+    
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryParams.append(key, String(value));
+      }
+    });
+
+    const url = `${COURTLISTENER_API_BASE}/opinions-cited/?${queryParams.toString()}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Citations API error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error searching citations:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get citations for a specific opinion
+ */
+export async function getOpinionCitations(opinionId: number): Promise<any> {
+  return searchOpinionsCited({
+    citing_opinion: opinionId,
+    page_size: 100,
+  });
+}
+
+/**
+ * Get cases that cite a specific opinion (reverse citations)
+ */
+export async function getOpinionCitedBy(opinionId: number): Promise<any> {
+  return searchOpinionsCited({
+    cited_opinion: opinionId,
+    page_size: 100,
+  });
+}
+
+/**
+ * Opinion Clusters API
+ * A cluster represents a single opinion that may have multiple formats
+ */
+export interface ClusterResult {
+  id: number;
+  case_name: string;
+  case_name_full: string;
+  case_name_short: string;
+  slug: string;
+  citation_count: number;
+  precedential_status: string;
+  date_filed: string;
+  date_filed_is_approximate: boolean;
+  judges: string;
+  nature_of_suit: string;
+  posture: string;
+  syllabus: string;
+  headnotes: string;
+  summary: string;
+  disposition: string;
+  history: string;
+  other_dates: string;
+  cross_reference: string;
+  correction: string;
+  citation: string[];
+  attorneys: string;
+  procedural_history: string;
+  source: string;
+  absolute_url: string;
+  docket: number;
+  court: string;
+  sub_opinions: number[]; // Opinion IDs
+  panel: number[]; // Judge IDs
+}
+
+/**
+ * Get cluster by ID
+ */
+export async function getClusterById(id: number): Promise<ClusterResult | null> {
+  try {
+    const response = await fetch(`${COURTLISTENER_API_BASE}/clusters/${id}/`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Cluster fetch error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching cluster:', error);
+    return null;
+  }
+}
+
+/**
+ * CPS-specific RECAP document search
+ */
+export async function searchCPSRecapDocuments(keywords: string, page: number = 1) {
+  return searchRecapDocuments({
+    q: `child protective services ${keywords}`,
+    is_available: true,
+    page,
+    page_size: 20,
+  });
+}
+
+/**
+ * Search for CPS attorneys
+ */
+export async function searchCPSAttorneys(name?: string, page: number = 1) {
+  return searchAttorneys({
+    q: name ? `${name} child protective services` : 'child protective services',
+    page,
+    page_size: 20,
+  });
+}
+
+/**
+ * Build citation network for an opinion
+ * Returns both citations and reverse citations
+ */
+export async function buildCitationNetwork(opinionId: number): Promise<{
+  citations: any[];
+  citedBy: any[];
+  totalCitations: number;
+  totalCitedBy: number;
+}> {
+  try {
+    const [citationsData, citedByData] = await Promise.all([
+      getOpinionCitations(opinionId),
+      getOpinionCitedBy(opinionId),
+    ]);
+
+    return {
+      citations: citationsData.results || [],
+      citedBy: citedByData.results || [],
+      totalCitations: citationsData.count || 0,
+      totalCitedBy: citedByData.count || 0,
+    };
+  } catch (error) {
+    console.error('Error building citation network:', error);
+    return {
+      citations: [],
+      citedBy: [],
+      totalCitations: 0,
+      totalCitedBy: 0,
+    };
+  }
+}
+
+/**
+ * Get full case details including docket, parties, and attorneys
+ */
+export async function getFullCaseDetails(docketId: number): Promise<{
+  docket: DocketResult | null;
+  parties: any[];
+  attorneys: any[];
+}> {
+  try {
+    const [docket, partiesData, attorneysData] = await Promise.all([
+      getDocketById(docketId),
+      searchParties({ docket: docketId, page_size: 100 }),
+      searchAttorneys({ docket: docketId, page_size: 100 }),
+    ]);
+
+    return {
+      docket,
+      parties: partiesData.results || [],
+      attorneys: attorneysData.results || [],
+    };
+  } catch (error) {
+    console.error('Error fetching full case details:', error);
+    return {
+      docket: null,
+      parties: [],
+      attorneys: [],
+    };
+  }
+}

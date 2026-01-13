@@ -26,14 +26,26 @@ const SubscriptionContext = createContext<SubscriptionContextType | undefined>(u
 const SPECIAL_ACCESS_CODE = 'CPSPUNISHER2024';
 
 export function SubscriptionProvider({ children }: { children: ReactNode }) {
-  const [tier, setTier] = useState<SubscriptionTier>('free');
+  const [tier, setTierState] = useState<SubscriptionTier>('free');
   const [hasSpecialAccess, setHasSpecialAccess] = useState(false);
 
-  // Check for special access on mount
+  // Wrapper for setTier that also persists to localStorage
+  const setTier = (newTier: SubscriptionTier) => {
+    setTierState(newTier);
+    localStorage.setItem('cps_user_tier', newTier);
+  };
+
+  // Check for special access and saved tier on mount
   useEffect(() => {
     const storedAccess = localStorage.getItem('cps_special_access');
     if (storedAccess === 'granted') {
       setHasSpecialAccess(true);
+    }
+    
+    // Load user's selected tier
+    const storedTier = localStorage.getItem('cps_user_tier') as SubscriptionTier;
+    if (storedTier && ['free', 'essential', 'professional', 'attorney', 'enterprise'].includes(storedTier)) {
+      setTierState(storedTier);
     }
   }, []);
 

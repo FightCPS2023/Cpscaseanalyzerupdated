@@ -454,42 +454,42 @@ export function AttorneyLandingPage({ onGetStarted }: AttorneyLandingPageProps) 
                 </Button>
               </Card>
 
-              <Card className="p-8 border-2 border-red-600 relative overflow-hidden bg-gradient-to-br from-red-50 to-white">
+              <Card className="p-8 border-2 border-red-600 relative overflow-hidden bg-gradient-to-br from-red-100 to-red-50">
                 <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
                   BEST VALUE
                 </div>
                 <div className="mb-6">
-                  <h3 className="text-2xl font-bold mb-2">Enterprise Plan</h3>
+                  <h3 className="text-2xl font-bold mb-2 text-gray-900">Enterprise Plan</h3>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-5xl font-bold">$999</span>
-                    <span className="text-gray-600">/month</span>
+                    <span className="text-5xl font-bold text-gray-900">$999</span>
+                    <span className="text-gray-800">/month</span>
                   </div>
-                  <p className="text-gray-600 mt-2">For law firms and teams</p>
+                  <p className="text-gray-800 mt-2">For law firms and teams</p>
                 </div>
                 <ul className="space-y-4 mb-8">
                   <li className="flex items-start gap-3">
                     <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span className="font-medium">Everything in Attorney, plus:</span>
+                    <span className="font-medium text-gray-900">Everything in Attorney, plus:</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>Unlimited team members</span>
+                    <span className="text-gray-800">Unlimited team members</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>Advanced analytics & reporting</span>
+                    <span className="text-gray-800">Advanced analytics & reporting</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>Bulk data import/export</span>
+                    <span className="text-gray-800">Bulk data import/export</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>Dedicated account manager</span>
+                    <span className="text-gray-800">Dedicated account manager</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>Custom integrations</span>
+                    <span className="text-gray-800">Custom integrations</span>
                   </li>
                 </ul>
                 <Button className="w-full py-6 text-lg bg-red-600 hover:bg-red-700 text-white">

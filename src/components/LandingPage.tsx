@@ -33,6 +33,7 @@ import {
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { DemoModal } from './DemoModal';
 import { FooterDisclaimer } from './LegalDisclaimer';
+import { NancySchaeferTribute } from './NancySchaeferTribute';
 import heroImage from 'figma:asset/da7dee53b50fcb425e1a14bf57136ede67a0ca5a.png';
 import logoImage from 'figma:asset/4d79a891e1263f20410892b0b4c2b4f9f8357e6b.png';
 
@@ -43,9 +44,24 @@ interface LandingPageProps {
 export function LandingPage({ onGetStarted }: LandingPageProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isDemoOpen, setIsDemoOpen] = useState(false);
+  const [showTribute, setShowTribute] = useState(() => {
+    // Check if user has chosen to skip the tribute
+    if (typeof window !== 'undefined') {
+      return !localStorage.getItem('skipSchaeferTribute');
+    }
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
+      {/* Nancy Schaefer Tribute Video - Shows on first visit unless skipped */}
+      {showTribute && (
+        <NancySchaeferTribute 
+          autoplay={false} 
+          onClose={() => setShowTribute(false)} 
+        />
+      )}
+
       {/* Announcement Bar */}
       <div className="bg-gradient-to-r from-red-600 to-red-700 py-2 px-4 text-center text-sm">
         <p className="flex items-center justify-center gap-2 flex-wrap">

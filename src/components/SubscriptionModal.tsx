@@ -4,6 +4,7 @@ import { Card } from "./ui/card";
 import { Check, Crown, Zap, FileText, Podcast, FileEdit, Shield, Brain, Scale } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { useSubscription } from "../contexts/SubscriptionContext";
+import { toast } from "sonner@2.0.3";
 
 interface SubscriptionModalProps {
   isOpen: boolean;
@@ -12,13 +13,70 @@ interface SubscriptionModalProps {
 }
 
 export function SubscriptionModal({ isOpen, onClose, feature }: SubscriptionModalProps) {
-  const { tier, upgradeToPremium } = useSubscription();
+  const { tier } = useSubscription();
 
-  const handleUpgrade = () => {
-    // In a real app, this would open Stripe checkout
-    // For now, we'll just upgrade them
-    upgradeToPremium();
-    onClose();
+  const handleUpgrade = async (selectedTier: 'essential' | 'professional' | 'attorney' | 'enterprise') => {
+    try {
+      // Get user ID
+      const userId = localStorage.getItem('cps_user_id');
+      
+      if (!userId) {
+        toast.error('Please log in to upgrade');
+        return;
+      }
+
+      // TODO: Replace these with your actual Stripe Price IDs from Stripe Dashboard
+      // Get these after creating products in Stripe
+      const priceIds: Record<string, string> = {
+        essential: 'price_896e4cc214015e1d6932d834d00920a4a7e91ff6743c2a705ca55295652065c8',
+        professional: 'price_822014a1bb55773087f96db8581ac8b4805825798c36c2d69a0fd9b81ea5e48a',
+        attorney: 'price_8d7bbd3bf398d916aa3a3bd7ed1cf145aff3833a40801d709b840f9cd1aaf1b4',
+        enterprise: 'price_ad720910b71f9d2772a26daff5edac769b02c1afeb1b2424bda1ef9281041cd4',
+      };
+
+      const priceId = priceIds[selectedTier];
+      
+      if (priceId.includes('REPLACE')) {
+        toast.info('Stripe not configured yet. Using demo mode.');
+        // For demo: manually upgrade
+        localStorage.setItem('cps_user_tier', selectedTier);
+        toast.success(`Upgraded to ${selectedTier}! (Demo mode)`);
+        window.location.reload();
+        return;
+      }
+
+      // Call your Stripe endpoint to create checkout session
+      const response = await fetch(
+        'https://rewgkrgmcmikivxjnfdq.supabase.co/functions/v1/make-server-a24eaa40/stripe/create-checkout',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            priceId: priceId,
+            userId: userId,
+            email: localStorage.getItem('cps_user_email') || 'user@example.com',
+            successUrl: `${window.location.origin}/dashboard?upgraded=true&tier=${selectedTier}`,
+            cancelUrl: `${window.location.origin}/pricing`,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to create checkout session');
+      }
+
+      const { url } = await response.json();
+      
+      if (url) {
+        // Redirect to Stripe Checkout
+        window.location.href = url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (error) {
+      console.error('Upgrade error:', error);
+      toast.error('Failed to start checkout. Please try again.');
+    }
   };
 
   const freeFeatures = [
@@ -149,10 +207,10 @@ export function SubscriptionModal({ isOpen, onClose, feature }: SubscriptionModa
                 </div>
                 <Button 
                   className="w-full" 
-                  onClick={handleUpgrade}
-                  disabled={tier === 'premium'}
+                  onClick={() => handleUpgrade('professional')}
+                  disabled={tier === 'professional'}
                 >
-                  {tier === 'premium' ? (
+                  {tier === 'professional' ? (
                     <>
                       <Check className="w-4 h-4 mr-2" />
                       Current Plan

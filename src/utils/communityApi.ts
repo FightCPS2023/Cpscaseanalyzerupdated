@@ -31,7 +31,7 @@ async function fetchAPI(endpoint: string, options: FetchOptions = {}) {
   } catch (error: any) {
     // Enhance error message for better debugging
     if (error.message === 'Failed to fetch') {
-      throw new Error('Server is not responding. Please check if the server is running or try again later.');
+      throw new Error('Server not deployed yet');
     }
     throw error;
   }
